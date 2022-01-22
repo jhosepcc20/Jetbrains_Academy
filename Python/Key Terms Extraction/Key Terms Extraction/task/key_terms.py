@@ -5,9 +5,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 
 def main():
-    xml_file = r"D:\OneDrive - Universidad Peruana de Ciencias\Documentos\Estudios\Jetbrains_Academy\Python\Key" \
-               r" Terms Extraction\Key Terms Extraction\task\news.xml"
-    root = etree.parse(xml_file).getroot()
+    root = etree.parse("news.xml").getroot()
     news = root[0]
     lemma = nltk.stem.WordNetLemmatizer()
     vectorize = TfidfVectorizer()
@@ -24,17 +22,9 @@ def main():
 
     for new, vector, doc in zip(news, matrix, document):
         print(new[0].text + ':')
-        tokens = sorted(doc.split(), reverse=True)
-        aux = tokens.copy()
-        values = []
-        for i in tokens:
-            try:
-                y = terms.index(i)
-            except ValueError:
-                aux.remove(i)
-            else:
-                values.append(vector[y])
-        words = dict(zip(aux, values))
+        tokens = list(filter(lambda x: x in terms, sorted(doc.split(), reverse=True)))
+        values = list(map(lambda x: vector[terms.index(x)], tokens))
+        words = dict(zip(tokens, values))
         print(*sorted(words, key=words.get, reverse=True)[:5], end='\n\n')
 
 
