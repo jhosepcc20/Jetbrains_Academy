@@ -3,17 +3,39 @@ from collections import deque
 
 
 def check(expression, table):
-    sings = [i.strip() for i in re.split(r"\w ?", '+' + expression) if i]
-    digits = [i.strip() for i in re.split("[-+()*/] ?", expression) if i]
-    expression = expression.replace('(', "( ").replace(')', " )").replace('+', " + ").replace('-', " - ").\
-        replace('*', " * ").replace('/', " / ")
-    expression = [i if i.lstrip("+-") else '-' if i.count('-') % 2 else '+' for i in expression.split()]
-    expression = [table.get(i, "None") if i.isalpha() else i for i in expression]
-    assert all(map(lambda x: x.isdigit() or x.isalpha(), digits)), "Invalid expression"
-    assert not any(map(lambda x: len(x.strip("() ")) > 1 and x.strip("() ")[0] in "*/^", sings)), "Invalid expression"
-    assert "None" not in expression, "Unknown variable"
+    expression = expression.replace(' ', '')
+    expression = expression.replace('(', " (").replace(')', ") ")
+    sings = [i.strip() for i in re.split(r"[\w ] ?", '+' + expression) if i]
+    sings = [i if i[0] not in "+-" else '-' if i.count('-') % 2 else '+' for i in sings]
+    digits = [i.strip() for i in re.split("[-+()*/^] ?", expression) if i]
 
-    return expression
+    assert all(map(lambda x: x.isdigit() or x.isalpha(), digits)), "Invalid expression"
+    assert not any(map(lambda x: x[0] in "*/^" and len(x) > 1, sings)), "Invalid expression"
+    digits = [table.get(i, "None") if i.isalpha() else i for i in digits]
+    assert "None" not in digits, "Unknown variable"
+    result = [sings.pop(0) + digits.pop(0)]
+    count = 0
+    for i in digits:
+        aux = sings.pop(0)
+        result.append(aux)
+        if aux == ')':
+            count -= 1
+            while sings[0] == ')':
+                count -= 1
+                result.append(sings.pop(0))
+            result.append(sings.pop(0))
+        elif sings:
+            while sings[0] == '(':
+                count += 1
+                result.append(sings.pop(0))
+                if not sings:
+                    break
+        result.append(i)
+    while count and sings:
+        count -= 1
+        result.append(sings.pop(0))
+    assert not sings, "Invalid expression"
+    return result
 
 
 def infix_to_postfix(infix: list[str]) -> list:
@@ -75,7 +97,7 @@ def calculate(postfix: list[str]):
             else:
                 stack.append(a / b)
 
-    return stack.pop()
+    return int(stack.pop())
 
 
 def main():
