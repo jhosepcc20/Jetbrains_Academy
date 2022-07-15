@@ -1,0 +1,13 @@
+.title {
+    font-size: x-large;
+}
+
+textarea {
+    height: 100px;
+    width: 500px;
+}
+
+button {
+    background-color: lightpink;
+    margin: 3px;
+}
